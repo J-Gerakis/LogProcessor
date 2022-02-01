@@ -128,7 +128,7 @@ public class Processor {
 
     public static void main(String[] arg) {
         String testPath;
-        if(arg.length > 1 && !arg[1].isEmpty()) testPath = arg[1];
+        if(arg.length > 0 && !arg[0].isEmpty()) testPath = arg[0];
         else testPath = "C:\\Projects\\LogProcessor\\src\\test\\resources\\logFile.txt";
 
         try {

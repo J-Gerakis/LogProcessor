@@ -57,7 +57,7 @@ public class DatabaseManager {
 
     /**
      * Establish the database connection
-     * @throws SQLException if the credential are incorrect
+     * @throws SQLException if the credentials are incorrect
      */
     public void open() throws SQLException {
         dbConn = DriverManager.getConnection(connectionString, username, password);
@@ -74,7 +74,7 @@ public class DatabaseManager {
         } catch(SQLException sqle) {
             logger.warn("Exception while closing connection: "+sqle.getMessage());
         } catch(NullPointerException npe) {
-            logger.warn("Connection already closed");
+            logger.warn("Connection doesn't exist");
         }
     }
 
