@@ -2,7 +2,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.processor.DatabaseManager;
 import org.processor.LogEntry;
 import org.processor.Processor;
@@ -12,7 +11,6 @@ public class ProcessorUnitTest {
 
     private static final String TEST_DB = "jdbc:hsqldb:mem:testlogdb";
 
-    @Mock
     private static DatabaseManager testDBmanager;
 
     @BeforeAll

@@ -1,7 +1,8 @@
 package org.processor;
 
-import java.util.Objects;
-
+/**
+ * Data class for Event database element
+ */
 public class Event {
     private String id;
     private long duration;
