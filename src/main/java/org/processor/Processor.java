@@ -1,12 +1,14 @@
 package org.processor;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -19,13 +21,18 @@ public class Processor {
 
     public final static Logger logger = LogManager.getLogger(Processor.class);
     public static final long ALERT_THRESHOLD = 4;
+    public static final String CHARSET = "UTF-8";
+
+    public static final String DEFAULT_FILE = "jdbc:hsqldb:file:serverlogdb";
+    public static final String DEFAULT_USER = "SA";
+    public static final String DEFAULT_PSWD = "";
 
     private final Gson gson = new Gson();
     private final HashMap<String, LogEntry> entryMap = new HashMap<>();
     private final DatabaseManager dbManager;
 
     public Processor() {
-        dbManager = new DatabaseManager();
+        dbManager = new DatabaseManager(DEFAULT_FILE, DEFAULT_USER, DEFAULT_PSWD);
         logger.info("Database manager created");
     }
 
@@ -46,13 +53,17 @@ public class Processor {
 
         try {
             int count = 0;
-            LineIterator lit = FileUtils.lineIterator(logFile, "UTF-8");
-            while(lit.hasNext()){
-                String rawLine = lit.nextLine();
+            LineIterator lineIterator = FileUtils.lineIterator(logFile, CHARSET);
+            while(lineIterator.hasNext()){
+                String rawLine = lineIterator.nextLine();
                 logger.debug("Raw line read: "+rawLine);
-                LogEntry entry = processLine(rawLine);
-                if(entry == null) continue;
-
+                LogEntry entry;
+                try{
+                    entry = processLine(rawLine);
+                } catch (IllegalArgumentException | JsonSyntaxException e) {
+                    logger.warn("Skipping malformed line: \""+rawLine+"\": ",e);
+                    continue;
+                }
                 if(entryMap.containsKey(entry.getId())) {
                     logger.debug("Calculating event time");
                     String currentId = entry.getId();
@@ -65,7 +76,7 @@ public class Processor {
                         dbManager.insertEvent(event);
                         count++;
                     } catch (SQLException sqle) {
-                        logger.error("Failure to insert event");
+                        logger.error("Failure to insert event: ", sqle);
                     }
                     entryMap.remove(currentId);
                 } else {
@@ -73,14 +84,14 @@ public class Processor {
                 }
 
             }
-            lit.close();
+            lineIterator.close();
             logger.info(count+" event(s) logged");
             if(!entryMap.isEmpty()) {
                 logger.warn(entryMap.size()+" event(s) have no closure");
             }
-        } catch(Exception e) {
-            logger.fatal("Error while parsing file: "+e.getMessage());
-            throw new ProcessorException("Error while parsing file: ", e);
+        } catch(IOException ioe) {
+            logger.fatal("Error while parsing file: "+ioe.getMessage());
+            throw new ProcessorException("Error while parsing file: ", ioe);
         } finally {
             dbManager.close();
         }
@@ -88,30 +99,25 @@ public class Processor {
     }
 
     /**
-     * Parse a log file line and create a LogEntry object. If the format is unreadable or critical information are missing,
-     * the method return null and a warning is logged.
+     * Parse a log file line and create a LogEntry object. At least 3 elements need to be present: id, state, and timestamp
      * @param rawLine a single line from the log file (JSON format)
      * @return LogEntry a object holding the information from the parsed line,
-     * or null if the line could not be deciphered.
+     * @throws IllegalArgumentException if critical information are missing, or JsonSyntaxException
+     * if the line cannot be deciphered
      */
-    public LogEntry processLine(String rawLine) {
-        try{
-            LogEntry entry = gson.fromJson(rawLine, LogEntry.class);
-            logger.debug("Read entry: "+entry.toString());
-            if(entry.getId().isEmpty() || entry.getId() == null) throw new ProcessorException("Id missing");
-            if(entry.getState().isEmpty() || entry.getState() == null) throw new ProcessorException("State missing");
-            if(entry.getTimestamp() <= -1) throw new ProcessorException("Timestamp incoherent or missing");
-            return entry;
-        } catch (Exception e) {
-            logger.warn("Skipping malformed line: \""+rawLine+"\", "+e.getMessage());
-            return null;
-        }
+    public LogEntry processLine(String rawLine) throws IllegalArgumentException {
+        LogEntry entry = gson.fromJson(rawLine, LogEntry.class);
+        logger.debug("Read entry: "+entry.toString());
+        if(entry.getId() == null || entry.getId().isEmpty()) throw new IllegalArgumentException("Id missing");
+        if(entry.getState() == null || entry.getState().isEmpty()) throw new IllegalArgumentException("State missing");
+        if(entry.getTimestamp() <= -1) throw new IllegalArgumentException("Timestamp incoherent or missing");
+        return entry;
     }
 
     private void openDatabaseConnection() throws ProcessorException {
         try{
             dbManager.open();
-            logger.info("Database connection open: ");
+            logger.info("Database connection open");
         } catch (SQLException sqle) {
             logger.fatal("Could not initialize HSQLDB: "+sqle.getMessage());
             throw new ProcessorException("Could not initialize HSQLDB: ", sqle);

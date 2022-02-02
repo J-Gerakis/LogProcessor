@@ -1,8 +1,13 @@
 package org.processor;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Data class for Event database element
  */
+@Getter
+@Setter
 public class Event {
     private String id;
     private long duration;
@@ -18,49 +23,9 @@ public class Event {
         this.alert = alert;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public long getDuration() {
-        return duration;
-    }
-
-    public void setDuration(long duration) {
-        this.duration = duration;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public boolean getAlert() {
-        return alert;
-    }
-
     public int getAlertAsInt() {
         if (alert) return 1;
         else return 0;
-    }
-
-    public void setAlert(boolean alert) {
-        this.alert = alert;
     }
 
     @Override

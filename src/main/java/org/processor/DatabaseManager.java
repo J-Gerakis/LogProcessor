@@ -20,8 +20,6 @@ public class DatabaseManager {
 
     public final static Logger logger = LogManager.getLogger(DatabaseManager.class);
 
-    public static final String DEFAULT_FILE = "jdbc:hsqldb:file:serverlogdb";
-    public static final String DEFAULT_USER = "SA";
     private static final String TABLE_EVENT = "event_log";
 
     private static final String TABLE_EVENT_CREATION = "CREATE TABLE "+TABLE_EVENT+" (" +
@@ -41,18 +39,12 @@ public class DatabaseManager {
     private Connection dbConn;
     private final String connectionString;
     private final String username;
-    private final String password;
+    private final String psswd;
 
-    public DatabaseManager() {
-        connectionString = DEFAULT_FILE;
-        username = DEFAULT_USER;
-        password = "";
-    }
-
-    public DatabaseManager(String dbFile, String user, String password) {
-        connectionString = dbFile;
-        username = user;
-        this.password = password;
+    public DatabaseManager(String connectionString, String user, String password) {
+        this.connectionString = connectionString;
+        this.username = user;
+        this.psswd = password;
     }
 
     /**
@@ -60,7 +52,7 @@ public class DatabaseManager {
      * @throws SQLException if the credentials are incorrect
      */
     public void open() throws SQLException {
-        dbConn = DriverManager.getConnection(connectionString, username, password);
+        dbConn = DriverManager.getConnection(connectionString, username, psswd);
         createTableIfNotExist();
     }
 
@@ -84,19 +76,14 @@ public class DatabaseManager {
      * @throws SQLException if the insertion fails
      */
     public void insertEvent(Event event) throws SQLException {
-        try {
-            PreparedStatement prep = dbConn.prepareStatement(INSERT_EVENT_STATEMENT);
-            prep.setString(1, event.getId());
-            prep.setLong(2, event.getDuration());
-            prep.setString(3, event.getHost());
-            prep.setString(4, event.getType());
-            prep.setInt(5, event.getAlertAsInt());
-            prep.executeUpdate();
-            prep.close();
-        } catch (SQLException sqle) {
-            logger.error("Failure to insert event: "+sqle.getMessage());
-            throw sqle;
-        }
+        PreparedStatement prep = dbConn.prepareStatement(INSERT_EVENT_STATEMENT);
+        prep.setString(1, event.getId());
+        prep.setLong(2, event.getDuration());
+        prep.setString(3, event.getHost());
+        prep.setString(4, event.getType());
+        prep.setInt(5, event.getAlertAsInt());
+        prep.executeUpdate();
+        prep.close();
     }
 
     /**
@@ -106,24 +93,18 @@ public class DatabaseManager {
      * @throws SQLException if the query fails
      */
     public Event retrieveEventById(String id) throws SQLException {
-        try {
-            PreparedStatement prep = dbConn.prepareStatement(SELECT_EVENT);
-            prep.setString(1, id);
-            ResultSet rs = prep.executeQuery();
-            if(!rs.next()) return null;
+        PreparedStatement prep = dbConn.prepareStatement(SELECT_EVENT);
+        prep.setString(1, id);
+        ResultSet rs = prep.executeQuery();
+        if(!rs.next()) return null;
 
-            return new Event(
-                    rs.getString("id"),
-                    rs.getLong("duration"),
-                    rs.getString("host"),
-                    rs.getString("type"),
-                    rs.getBoolean("alert")
-            );
-
-        } catch (SQLException sqle) {
-            logger.error("Failure to retrieve event: "+sqle.getMessage());
-            throw sqle;
-        }
+        return new Event(
+                rs.getString("id"),
+                rs.getLong("duration"),
+                rs.getString("host"),
+                rs.getString("type"),
+                rs.getBoolean("alert")
+        );
     }
 
     private void createTableIfNotExist() {

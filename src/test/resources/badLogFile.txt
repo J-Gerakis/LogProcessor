@@ -1,0 +1,5 @@
+{"id":"asdf_a", "state":"STARTED", "type":"APPLICATION_LOG", "host":"12345", "timestamp":1491377495212}
+{"id":"asdf_a", "state":"FINISHED", "type":"APPLICATION_LOG", "host":"12345", "timestamp":1491377495217}
+{"id":"asdf_b", "state":"STARTED", "timestamp":1491377495213}
+{"id":"asdf_c", "state":"FINISHED", "timestamp":1491377495218}
+{"id":"asdf_b", "state":"FINISHED", "timestamp":}

@@ -9,13 +9,13 @@ public class DatabaseManagerUnitTest {
 
     private static final String TEST_DB = "jdbc:hsqldb:mem:testlogdb";
 
-    private static DatabaseManager testDB;
+    private static DatabaseManager testDatabaseManager;
 
     @BeforeAll
     static void beforeAll() {
         try {
-            testDB = new DatabaseManager(TEST_DB,"SA","");
-            testDB.open();
+            testDatabaseManager = new DatabaseManager(TEST_DB,"SA","");
+            testDatabaseManager.open();
         } catch (Exception e) {
             Assertions.fail(e);
         }
@@ -23,11 +23,7 @@ public class DatabaseManagerUnitTest {
 
     @AfterAll
     static void afterAll() {
-        try {
-            testDB.close();
-        } catch (Exception e) {
-            Assertions.fail(e);
-        }
+        testDatabaseManager.close();
     }
 
     @Test
@@ -36,12 +32,12 @@ public class DatabaseManagerUnitTest {
             Event ev1 = new Event("sssa",4,"host","type",true);
             Event ev2 = new Event("sssb",3,null,"type",false);
             Event ev3 = new Event("sssc",3,"host",null,false);
-            testDB.insertEvent(ev1);
-            testDB.insertEvent(ev2);
-            testDB.insertEvent(ev3);
-            Event ev11 = testDB.retrieveEventById(ev1.getId());
-            Event ev12 = testDB.retrieveEventById(ev2.getId());
-            Event ev13 = testDB.retrieveEventById(ev3.getId());
+            testDatabaseManager.insertEvent(ev1);
+            testDatabaseManager.insertEvent(ev2);
+            testDatabaseManager.insertEvent(ev3);
+            Event ev11 = testDatabaseManager.retrieveEventById(ev1.getId());
+            Event ev12 = testDatabaseManager.retrieveEventById(ev2.getId());
+            Event ev13 = testDatabaseManager.retrieveEventById(ev3.getId());
             Assertions.assertEquals(ev1, ev11);
             Assertions.assertEquals(ev2, ev12);
             Assertions.assertEquals(ev3, ev13);
