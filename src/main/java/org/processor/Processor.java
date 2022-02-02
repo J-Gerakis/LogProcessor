@@ -23,16 +23,13 @@ public class Processor {
     public static final long ALERT_THRESHOLD = 4;
     public static final String CHARSET = "UTF-8";
 
-    public static final String DEFAULT_FILE = "jdbc:hsqldb:file:serverlogdb";
-    public static final String DEFAULT_USER = "SA";
-    public static final String DEFAULT_PSWD = "";
-
     private final Gson gson = new Gson();
     private final HashMap<String, LogEntry> entryMap = new HashMap<>();
     private final DatabaseManager dbManager;
 
     public Processor() {
-        dbManager = new DatabaseManager(DEFAULT_FILE, DEFAULT_USER, DEFAULT_PSWD);
+        DatabasePropertiesObject propertiesObject = new DatabasePropertiesObject();
+        dbManager = new DatabaseManager(propertiesObject.connectionString, propertiesObject.username, propertiesObject.passwd);
         logger.info("Database manager created");
     }
 
