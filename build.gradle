@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group 'org.processor'
@@ -26,4 +27,13 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+apply plugin : "java"
+ext {
+    javaMainClass = "org.processor.Processor"
+}
+
+application {
+    mainClassName = javaMainClass
 }
