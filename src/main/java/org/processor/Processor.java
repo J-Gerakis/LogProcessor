@@ -65,24 +65,11 @@ public class Processor {
                     continue;
                 }
                 if(entryMap.containsKey(entry.getId())) {
-                    logger.debug("Calculating event time");
-                    String currentId = entry.getId();
-                    LogEntry previousEntry = entryMap.get(currentId);
-                    long eventDuration = Math.abs(entry.getTimestamp() - previousEntry.getTimestamp());
-                    boolean alert = eventDuration > ALERT_THRESHOLD;
-                    Event event = new Event(currentId, eventDuration, entry.getHost(), entry.getType(), alert);
-                    try{
-                        logger.debug("Inserting event: "+event);
-                        dbManager.insertEvent(event);
-                        count++;
-                    } catch (SQLException sqle) {
-                        logger.error("Failure to insert event: ", sqle);
-                    }
-                    entryMap.remove(currentId);
+                    count += insertIntoDatabase(entry);
+                    entryMap.remove(entry.getId());
                 } else {
                     entryMap.put(entry.getId(), entry);
                 }
-
             }
             lineIterator.close();
             logger.info(count+" event(s) logged");
@@ -122,6 +109,23 @@ public class Processor {
             logger.fatal("Could not initialize HSQLDB: "+sqle.getMessage());
             throw new ProcessorException("Could not initialize HSQLDB: ", sqle);
         }
+    }
+
+    private int insertIntoDatabase(LogEntry entry) {
+        logger.debug("Calculating event time");
+        String currentId = entry.getId();
+        LogEntry previousEntry = entryMap.get(currentId);
+        long eventDuration = Math.abs(entry.getTimestamp() - previousEntry.getTimestamp());
+        boolean alert = eventDuration > ALERT_THRESHOLD;
+        Event event = new Event(currentId, eventDuration, entry.getHost(), entry.getType(), alert);
+        try{
+            logger.debug("Inserting event: "+event);
+            dbManager.insertEvent(event);
+            return 1;
+        } catch (SQLException sqle) {
+            logger.error("Failure to insert event: ", sqle);
+        }
+        return 0;
     }
 
     private File openFile(String path) throws ProcessorException {
