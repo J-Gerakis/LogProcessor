@@ -58,7 +58,8 @@ public class Processor {
                 try{
                     entry = processLine(rawLine);
                 } catch (IllegalArgumentException | JsonSyntaxException e) {
-                    logger.warn("Skipping malformed line: \""+rawLine+"\": ",e);
+                    logger.warn("Skipping malformed line: \""+rawLine+"\": "+e.getMessage());
+                    logger.debug(e);
                     continue;
                 }
                 if(entryMap.containsKey(entry.getId())) {
@@ -120,7 +121,8 @@ public class Processor {
             dbManager.insertEvent(event);
             return 1;
         } catch (SQLException sqle) {
-            logger.error("Failure to insert event: ", sqle);
+            logger.error("Failure to insert event: "+sqle.getMessage());
+            logger.debug(sqle);
         }
         return 0;
     }

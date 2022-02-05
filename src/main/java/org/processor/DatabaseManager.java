@@ -53,6 +53,7 @@ public class DatabaseManager {
      */
     public void open() throws SQLException {
         dbConn = DriverManager.getConnection(connectionString, username, psswd);
+        logger.info("Database connection open");
         createTableIfNotExist();
     }
 
