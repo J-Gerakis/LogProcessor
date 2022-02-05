@@ -37,6 +37,7 @@ public class DatabasePropertiesObject {
             connectionString = prop.getProperty("db.connectionString");
             username = prop.getProperty("db.username");
             passwd = prop.getProperty("db.password");
+            input.close();
         } catch (IOException ioe) {
             logger.warn("Failed to read properties file, reverting to default values");
             connectionString = DEFAULT_FILE;
